@@ -1,0 +1,50 @@
+# ==============================================
+# .gitignore git忽略文件
+# ==============================================
+
+# 编译输出文件
+*.o
+*.obj
+*.exe
+*.out
+*.app
+*.pdb
+*.ilk
+*.lib
+*.dll
+*.so
+*.dylib
+
+# 构建目录
+build/
+bin/
+obj/
+x64/
+x86/
+Debug/
+Release/
+cmake-build-*/
+
+# 编辑器/IDE 临时文件
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.user
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# 日志、缓存
+*.log
+*.tmp
+*.cache
+
+# 项目生成的数据文件（图书/用户数据）
+*.db
+*.dat
+*.txt
+*.csv
