@@ -1,0 +1,48 @@
+# EditorConfig - 统一不同编辑器和 IDE 的代码风格
+# https://editorconfig.org
+
+# 顶层配置
+root = true
+
+# 所有文件的默认规则
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C/C++ 源文件
+[*.{cpp,h,hpp,c}]
+indent_size = 4
+
+# CMake 配置文件
+[CMakeLists.txt]
+indent_size = 4
+
+[*.cmake]
+indent_size = 4
+
+# Markdown 文件
+[*.md]
+trim_trailing_whitespace = false
+
+# JSON 配置文件
+[*.json]
+indent_size = 2
+
+# YAML 配置文件
+[{*.yml,*.yaml}]
+indent_size = 2
+
+# XML 配置文件
+[*.xml]
+indent_size = 2
+
+# Makefile（必须使用 Tab 缩进）
+[Makefile]
+indent_style = tab
+
+[*.mk]
+indent_style = tab
