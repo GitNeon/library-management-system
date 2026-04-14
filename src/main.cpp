@@ -2,6 +2,7 @@
 #include <fstream>  // 文件读取必须的头文件
 #include <sstream>  // 字符串流（用来切分逗号）必须的头文件
 #include <limits> // 用于处理错误的输入缓冲区
+#include <cstdint>
 
 #ifdef _WIN32
 #define NOMINMAX // 防止 windows.h 定义 max/min 宏，避免与标准库冲突
@@ -9,6 +10,7 @@
 #endif
 
 #include "entity/user.h"
+#include "entity/book.h"
 
 using namespace std; // 在 main.cpp 里用 using namespace std; 是允许的
 
@@ -33,8 +35,136 @@ void showMainMenu() {
     cout << "请输入您的选择 (0-1): ";
 }
 
+/// @brief 打印管理员菜单界面
+void printAdminMenu() {
+    cout << "\n【 管 理 员 菜 单 】\n";
+    cout << "------------------------------------------\n";
+    cout << "  1. 添加图书\n";
+    cout << "  2. 删除图书\n";
+    cout << "  3. 修改图书信息\n";
+    cout << "  4. 查看所有图书\n";
+    cout << "  0. 返回上一级\n";
+    cout << "------------------------------------------\n";
+    cout << "请输入您的选择 (0-4): ";
+}
+
+/// @brief 检查图书编号是否已存在
+bool isBookIdExist(const string& id) {
+    ifstream inFile("./data/book.csv");
+    if (!inFile.is_open()) return false;
+
+    string line;
+    getline(inFile, line); // 跳过表头
+
+    while (getline(inFile, line)) {
+        if (line.empty()) continue;
+        stringstream ss(line);
+        string fileBookId;
+        getline(ss, fileBookId, ',');
+        if (fileBookId == id) {
+            inFile.close();
+            return true;
+        }
+    }
+
+    inFile.close();
+    return false;
+}
+
+/// @brief 添加图书功能
+void doAddBook() {
+    cout << "\n--- 添加图书 ---\n";
+
+    string id, name, author, publisher, publishDate;
+    uint16_t total;
+
+    cout << "请输入图书编号: ";
+    cin >> id;
+    cout << "请输入书名: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // 清空缓冲区，防止书名被截断
+    getline(cin, name);
+    cout << "请输入作者: ";
+    getline(cin, author);
+    cout << "请输入出版社: ";
+    getline(cin, publisher);
+    cout << "请输入出版日期: ";
+    getline(cin, publishDate);
+    cout << "请输入总册数: ";
+    cin >> total;
+
+    // 校验总册数合法性
+    if (cin.fail() || total <= 0) {
+        cout << "\n【错误】总册数必须为正整数！\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return;
+    }
+
+    // 校验图书编号是否已存在
+    if (isBookIdExist(id)) {
+        cout << "\n【错误】图书编号 " << id << " 已存在，请勿重复添加！\n";
+        return;
+    }
+
+    // 构造 Book 对象
+    Book newBook(id, name, author, publisher, publishDate, static_cast<uint16_t>(total));
+
+    // 追加写入 CSV 文件
+    ofstream outFile("./data/book.csv", ios::app);
+    if (!outFile.is_open()) {
+        cout << "\n【系统错误】无法打开 book.csv 文件！\n";
+        return;
+    }
+
+    outFile << newBook.getId() << ","
+            << newBook.getName() << ","
+            << newBook.getAuthor() << ","
+            << newBook.getPublisher() << ","
+            << newBook.getPublishDate() << ","
+            << newBook.getTotal() << ","
+            << newBook.getAvailable() << "\n";
+
+    outFile.close();
+    cout << "\n【成功】图书《" << name << "》添加成功！\n";
+}
+
+/// @brief 管理员菜单循环
 void showAdminMenu() {
-    cout << "\n>>> 进入 [管理员菜单] (功能开发中...)\n";
+    int choice = -1;
+
+    do {
+        printAdminMenu();
+        cin >> choice;
+
+        if (cin.fail()) {
+            cout << "\n【错误】输入非法！请输入数字。\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            choice = -1;
+            continue;
+        }
+
+        switch (choice) {
+            case 1:
+                doAddBook();
+                break;
+            case 2:
+                cout << "\n>>> 删除图书功能开发中...\n";
+                break;
+            case 3:
+                cout << "\n>>> 修改图书信息功能开发中...\n";
+                break;
+            case 4:
+                cout << "\n>>> 查看所有图书功能开发中...\n";
+                break;
+            case 0:
+                cout << "\n>>> 返回上一级菜单。\n";
+                break;
+            default:
+                cout << "\n【错误】您输入的选项不存在，请重新选择！\n";
+                break;
+        }
+    } while (choice != 0);
 }
 
 void showReaderMenu() {
@@ -114,6 +244,7 @@ void doLogin() {
 
 int main() {
 #ifdef _WIN32
+    SetConsoleCP(65001);       // 设置控制台输入编码为 UTF-8
     SetConsoleOutputCP(65001); // 设置控制台输出编码为 UTF-8
 #endif
 
