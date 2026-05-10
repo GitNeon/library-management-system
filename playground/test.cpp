@@ -1,125 +1,56 @@
-#include <vector>
 #include <iostream>
 #include <string>
-#include <list>
-#include <algorithm>
-#include <fstream>
+#include <vector>
+#include <windows.h>
 
-using namespace std;
-
-// 打印 list
-template <typename T>
-void print_list(const list<T>& lst) {
-    cout << "[";
-    bool first = true;
-    for (const auto& elem : lst) {
-        if (!first) cout << ", ";
-        cout << elem;
-        first = false;
+class HasDefault {
+public:
+    int val;
+    HasDefault() : val(20) {
+        std::cout << "HasDefault 默认构造函数被调用, val = " << val << std::endl;
     }
-    cout << "]" << endl;
-}
-
-// 打印 vector
-template <typename T>
-void print_vec(const vector<T>& vec) {
-    cout << "[";
-    for (size_t i = 0; i < vec.size(); ++i) {
-        cout << vec[i];
-        if (i < vec.size() - 1) cout << ", ";
-    }
-    cout << "]" << endl;
-}
-
-vector<string> getFileContent() {
-    string fileName;
-    cout << "please enter file name: ";
-    cin >> fileName;
-
-    ifstream infile(fileName);
-
-    if (!infile.is_open()) {
-        cout << "Failed to open file: " << fileName << endl;
-        exit(-1);
-    }
-
-    vector<string> lines;
-
-    string line;
-    short line_num = 0;
-    while (getline(infile, line)) {
-        cout << "read line: " << line << '\n';
-        lines.push_back(line);
-        line_num++;
-    }
-
-    cout << "number of lines = " << line_num << endl;
-
-    infile.close();
-    return lines;
-}
-
-// 单词信息结构体
-struct WordInfo {
-    string word;          // 单词内容
-    int line_number;      // 所在行号（从0开始）
-    int word_col_pos;     // 单词在行中的起始列位置（从0开始）
 };
 
-// 将读到的文本内容进行单词分割
-vector<WordInfo> separate_words(const vector<string>& text_vec) {
-    vector<WordInfo> result;
+int main() {
+    SetConsoleOutputCP(CP_UTF8);
 
-    for (int line_number = 0; line_number < static_cast<int>(text_vec.size()); ++line_number) {
-        string line_text = text_vec[line_number];
-        string::size_type word_start_pos = 0;
+    // 情况 1
+    // 当你定义一个数组并提供了部分初始值时，剩下的元素不会保持未初始化状态，而是会被值初始化（内置类型置零，类类型调用默认构造函数）
+    {
+        std::cout << "--- 情况 1：数组初始值数量不足 ---" << std::endl;
+        int arr[5] = {10, 20};
+        std::cout << "arr[0]=" << arr[0] << ", arr[2]=" << arr[2] << std::endl;
 
-        while (word_start_pos < line_text.size()) {
-            // 跳过连续空格
-            if (line_text[word_start_pos] == ' ') {
-                ++word_start_pos;
-                continue;
-            }
-
-            // 找到下一个空格作为单词结束位置
-            string::size_type word_end_pos = line_text.find_first_of(' ', word_start_pos);
-
-            // 提取单词
-            string word;
-            if (word_end_pos == string::npos) {
-                word = line_text.substr(word_start_pos);
-            } else {
-                word = line_text.substr(word_start_pos, word_end_pos - word_start_pos);
-            }
-
-            // 存入结果
-            result.push_back({word, line_number, static_cast<int>(word_start_pos)});
-
-            // 移动到下一个单词起点
-            if (word_end_pos == string::npos) {
-                break;
-            }
-            word_start_pos = word_end_pos + 1;
-        }
+        HasDefault classArr[3] = { HasDefault() };
     }
 
-    return result;
-}
+    // 情况 2
+    // 局部变量默认是默认初始化的（垃圾值），但如果是 static 局部变量，且未提供初始值，它会被值初始化。因为静态变量存在于程序整个生命周期，必须保证有确定的初始状态。
+    {
+        std::cout << "\n--- 情况 2：局部静态变量 ---" << std::endl;
+        int normal_int;
+        static int static_int;
 
-int main() {
+        std::cout << "普通局部变量 normal_int 的值(未定义): " << normal_int << std::endl;
+        std::cout << "局部静态变量 static_int 的值(值初始化): " << static_int << std::endl;
+    }
 
-    vector<string> text_vec = getFileContent();
+    // 情况 3
+    // 这是最显式的值初始化方式。T() 告诉编译器：“给我创建一个 T 类型的临时对象，并把它值初始化”。vector 只提供大小不提供初始值时，内部元素也是值初始化。
+    {
+        std::cout << "\n--- 情况 3：显式请求值初始化 T() 及 vector ---" << std::endl;
+        int zero_val = int();
+        std::cout << "int() 的值: " << zero_val << std::endl;
 
-    vector<WordInfo> words = separate_words(text_vec);
+        std::string empty_str = std::string();
+        std::cout << "string() 的内容和长度: \"" << empty_str << "\", " << empty_str.length() << std::endl;
 
-    // 输出所有单词信息
-    cout << "\n--- Separate Words Result ---" << endl;
-    cout << "Total words: " << words.size() << endl;
-    for (const auto& w : words) {
-        cout << "word: \"" << w.word
-             << "\", line: " << w.line_number
-             << ", col: " << w.word_col_pos
-             << endl;
+        std::vector<int> vec(5);
+        std::cout << "vector<int>(5) 的内容: ";
+        for (int v : vec) {
+            std::cout << v << " ";
+        }
+        std::cout << std::endl;
     }
 
     return 0;
