@@ -26,7 +26,7 @@ public:
         cout << "[Copy Constructor] Called to copy: " << *p.ps << endl;
     }
 
-    HasPtr& operator=(const HasPtr &h);
+    HasPtr& operator=(const HasPtr &rhs);
 
     ~HasPtr() {
          cout << "[Destructor] Freeing memory for: " << *ps
@@ -46,9 +46,6 @@ HasPtr& HasPtr::operator=(const HasPtr &rhs) {
          << " (Addr: " << ps << ")" << endl;
 
     delete ps;
-
-    cout << "[HasPtr::operator=] ps is deleted: " << *ps
-        << " (Addr: " << ps << ")" << endl;
 
     ps = newHas;
     i = rhs.i;
