@@ -12,12 +12,6 @@ public:
     char* data;
     size_t len;
 
-    // 有参构造函数为所有参数都提供了默认值，则我们不需要无参构造函数了
-    // 否则编译会引起二义性
-    // MyString() {
-    //     std::cout << "No Params Constructor called: " << data << std::endl;
-    // }
-
     // 1. 构造函数
     explicit MyString(const char* str = "") {
         len = strlen(str);
@@ -99,9 +93,6 @@ public:
 MyString returnNamedObject() {
     MyString temp("NRVO_Test");
     return temp;
-
-    // 强制使用移动语义，导致无法在函数返回值处接收变量的指向内存处直接构造对象
-    // return std::move(temp); // 自作聪明的写法！
 }
 
 // 案例 2: 返回临时对象 (测试 URVO / Copy Elision)
@@ -122,48 +113,20 @@ MyString returnConditional(bool flag) {
 int main() {
     SetConsoleOutputCP(CP_UTF8);
 
-    /*
-    * Constructor called: Direct Init
-    * Destructor called: Direct Init
-     */
     std::cout << "========== Test 1: 直接构造 ==========" << std::endl;
     {
         MyString s1("Direct Init");
     } // s1 离开作用域，析构
     std::cout << std::endl;
 
-    /**
-    *   Constructor called: Source
-        --- Creating s2 from s1 ---
-        Copy Constructor called: Source
-        Destructor called: Source
-        Destructor called: Source
-     *
-     */
     std::cout << "========== Test 2: 拷贝初始化 (Lvalue) ==========" << std::endl;
     {
         MyString s1("Source");
         std::cout << "--- Creating s2 from s1 ---" << std::endl;
-
-        // 写法1
-        // MyString s2 = s1; // 调用拷贝构造函数
-
-        // 写法2，试试运行，与写法1有何不同
-        MyString s2;
-        s2 = s1;
-
+        MyString s2 = s1; // 调用拷贝构造函数
     } // s2 析构，s1 析构
     std::cout << std::endl;
 
-    /*
-     *
-     *  Constructor called: Move_Source
-        --- Creating s2 via std::move(s1) ---
-        Move Constructor called
-        Destructor called: Move_Source
-        Destructor called (null)
-     *
-     */
     std::cout << "========== Test 3: 移动初始化 (Rvalue/std::move) ==========" << std::endl;
     {
         MyString s1("Move_Source");
@@ -173,24 +136,14 @@ int main() {
     } // s2 析构，s1 析构
     std::cout << std::endl;
 
-    /*
-     * --- Calling returnNamedObject() ---
-        Constructor called: NRVO_Test
-        Destructor called: NRVO_Test
-    */
     std::cout << "========== Test 4: NRVO (具名返回值优化) ==========" << std::endl;
     {
         std::cout << "--- Calling returnNamedObject() ---" << std::endl;
-        // returnNamedObject是个简单的函数，直接返回对象
-        // 编译器可以对此优化
         MyString s = returnNamedObject();
         // 预期：只有一次 Constructor，没有 Copy/Move Constructor (开启优化时)
     }
     std::cout << std::endl;
 
-    /* --- Calling returnTemporary() ---
-    Constructor called: URVO_Test
-    Destructor called: URVO_Test */
     std::cout << "========== Test 5: URVO (未具名返回值优化) ==========" << std::endl;
     {
         std::cout << "--- Calling returnTemporary() ---" << std::endl;
@@ -199,13 +152,6 @@ int main() {
     }
     std::cout << std::endl;
 
-    // --- Calling returnConditional(true) ---
-    // Constructor called: OptionA
-    // Constructor called: OptionB
-    // Move Constructor called
-    // Destructor called: OptionB
-    // Destructor called (null)
-    // Destructor called: OptionA
     std::cout << "========== Test 6: RVO 失效回退到移动语义 ==========" << std::endl;
     {
         std::cout << "--- Calling returnConditional(true) ---" << std::endl;
@@ -213,12 +159,6 @@ int main() {
     }
     std::cout << std::endl;
 
-    // Constructor called: Old_Value
-    // --- Assigning result of returnTemporary() ---
-    // Constructor called: URVO_Test
-    // Move Assignment called
-    // Destructor called (null)
-    // Destructor called: URVO_Test
     std::cout << "========== Test 7: 赋值运算 (非初始化) ==========" << std::endl;
     {
         MyString s1("Old_Value");
