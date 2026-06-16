@@ -46,7 +46,7 @@ int main() {
     struct MyClass { double a; char b; };
     MyClass* pc = new MyClass{3.14, 'X'};
     std::cout << "分配成功，pc->a = " << pc->a << ", pc->b = " << pc->b << std::endl;
-
+    
     std::cout << "\n--- 开始释放自定义类的内存 ---" << std::endl;
     delete pc;
 
